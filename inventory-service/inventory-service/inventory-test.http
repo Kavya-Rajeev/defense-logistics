@@ -1,0 +1,17 @@
+GET http://localhost:8084/api/inventory
+Accept: application/json
+
+
+### Get all inventory items
+GET http://localhost:8084/api/inventory
+Accept: application/json
+
+### Add a test inventory item
+POST http://localhost:8084/api/inventory
+Content-Type: application/json
+
+{
+  "itemName": "Test Bandages",
+  "quantity": 25,
+  "minimumStock": 5
+}
