@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Dashboard')}"></head>
+<body>
+<aside th:replace="~{fragments :: sidebar('dashboard')}"></aside>
+
+<div class="main">
+  <header th:replace="~{fragments :: topbar('Dashboard')}"></header>
+
+  <div class="content">
+    <div th:replace="~{fragments :: flash}"></div>
+
+    <section class="hero">
+      <div style="position:relative;z-index:1">
+        <h1>Welcome back, <span th:text="${user}">Officer</span></h1>
+        <p>Live view of personnel, vehicle and equipment readiness, pending requests and maintenance.</p>
+        <div class="btns">
+          <a class="btn-accent" th:href="@{/m/requests/new}"><i class="bi bi-plus-lg"></i> New request</a>
+          <a class="btn-ghost-light" th:href="@{/m/requests}">Track requests</a>
+        </div>
+      </div>
+      <div class="ring-wrap">
+        <div class="ring" th:style="'--p:' + ${overall}"><span th:text="${overall} + '%'">0%</span></div>
+        <small th:text="${overallLabel}">READY</small>
+      </div>
+    </section>
+
+    <div class="row g-3 mt-1">
+      <div class="col-sm-6 col-xl-3">
+        <a class="kpi amber" th:href="@{/m/requests(status='PENDING')}">
+          <span class="kpi-icon"><i class="bi bi-hourglass-split"></i></span>
+          <div><div class="num" th:text="${pending}">0</div><div class="lbl">Pending requests</div></div>
+        </a>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <a class="kpi teal" th:href="@{/m/allocations}">
+          <span class="kpi-icon"><i class="bi bi-link-45deg"></i></span>
+          <div><div class="num" th:text="${allocatedNow}">0</div><div class="lbl">Active allocations</div></div>
+        </a>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <a class="kpi sky" th:href="@{/m/maintenance}">
+          <span class="kpi-icon"><i class="bi bi-wrench-adjustable"></i></span>
+          <div><div class="num" th:text="${maintenanceOpen}">0</div><div class="lbl">Open maintenance jobs</div></div>
+        </a>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <a class="kpi red" th:href="@{/m/supplies(status='LOW')}">
+          <span class="kpi-icon"><i class="bi bi-exclamation-triangle"></i></span>
+          <div><div class="num" th:text="${lowStock}">0</div><div class="lbl">Low-stock supplies</div></div>
+        </a>
+      </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+      <div class="col-lg-7">
+        <div class="panel">
+          <div class="panel-head"><h6>Resource readiness</h6></div>
+          <div class="panel-body">
+            <div class="meter-row" th:each="m : ${meters}">
+              <div class="meter-top">
+                <span><i class="bi" th:classappend="${m.icon}"></i><span th:text="${m.label}"></span></span>
+                <b><span th:text="${m.ready}"></span> / <span th:text="${m.total}"></span> &middot; <span th:text="${m.pct}"></span>%</b>
+              </div>
+              <div class="meter"><span th:classappend="${m.level}" th:style="'width:' + ${m.pct} + '%'"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="panel">
+          <div class="panel-head"><h6>Requests by status</h6></div>
+          <div class="panel-body"><canvas id="reqChart" height="190"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mt-1 mb-2">
+      <div class="col-lg-8">
+        <div class="panel">
+          <div class="panel-head"><h6>Recent requests</h6><a th:href="@{/m/requests}">View all</a></div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>ID</th><th>Unit</th><th>Vehicle</th><th>Equipment</th><th>Priority</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr th:if="${#lists.isEmpty(recent)}"><td colspan="6" class="empty">No requests yet</td></tr>
+                <tr th:each="r : ${recent}">
+                  <td class="idcell" th:text="'#' + ${r.get('id')}"></td>
+                  <td><a class="rowlink" th:href="@{/m/requests/view/{id}(id=${r.get('id')})}" th:text="${r.get('unit')}"></a></td>
+                  <td th:text="${r.get('vehicleType')}"></td>
+                  <td th:text="${r.get('equipmentType')}"></td>
+                  <td th:text="${r.get('priority')}"></td>
+                  <td><span class="pill" th:classappend="'st-' + ${r.get('status')}" th:text="${r.get('status')}"></span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="panel">
+          <div class="panel-head"><h6>Supply alerts</h6><a th:href="@{/m/supplies}">Manage</a></div>
+          <div class="panel-body">
+            <div th:if="${#lists.isEmpty(lowItems)}" class="muted">All supplies are above minimum level.</div>
+            <div class="alert-row" th:each="s : ${lowItems}">
+              <div>
+                <div class="fw-bold" th:text="${s.get('item')}"></div>
+                <small>Stock <span th:text="${s.get('quantity')}"></span> &middot; Minimum <span th:text="${s.get('minLevel')}"></span></small>
+              </div>
+              <span class="pill st-LOW">LOW</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script th:inline="javascript">
+  Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+  new Chart(document.getElementById('reqChart'), {
+    type: 'doughnut',
+    data: {
+      labels: /*[[${chartLabels}]]*/ [],
+      datasets: [{
+        data: /*[[${chartData}]]*/ [],
+       backgroundColor:['#c9a24a', '#a3ad7a', '#4a5530', '#cfc9b0', '#a8512f'],
+        borderWidth: 0
+      }]
+    },
+    options: { cutout: '68%', plugins: { legend: { position: 'bottom' } } }
+  });
+</script>
+</body>
+</html>

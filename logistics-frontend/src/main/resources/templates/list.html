@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${title})}"></head>
+<body>
+<aside th:replace="~{fragments :: sidebar(${key})}"></aside>
+
+<div class="main">
+  <header th:replace="~{fragments :: topbar(${title})}"></header>
+
+  <div class="content">
+    <div th:replace="~{fragments :: flash}"></div>
+
+    <div class="page-head">
+      <div>
+        <h2><i class="bi me-2" th:classappend="${icon}" style="color:var(--teal-500)"></i><span th:text="${title}"></span></h2>
+        <p th:text="${subtitle}"></p>
+      </div>
+      <a th:if="${canAdd}" class="btn-primary-x" th:href="@{/m/{k}/new(k=${key})}"><i class="bi bi-plus-lg"></i> Add new</a>
+    </div>
+
+    <div class="panel">
+      <div class="toolbar">
+        <div class="chips">
+          <a class="chip" th:classappend="${activeStatus == ''} ? 'on'" th:href="@{/m/{k}(k=${key})}">All (<span th:text="${total}"></span>)</a>
+          <a class="chip" th:each="c : ${chips}" th:classappend="${c == activeStatus} ? 'on'"
+             th:href="@{/m/{k}(k=${key},status=${c})}" th:text="${#strings.replace(c,'_',' ')}"></a>
+        </div>
+        <div class="search"><i class="bi bi-search"></i><input id="search" placeholder="Search records..."></div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table class="tbl" id="tbl">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th th:each="c : ${columns}" th:text="${labels.get(c)}"></th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:if="${#lists.isEmpty(rows)}">
+              <td th:colspan="${#lists.size(columns) + 2}" class="empty">No records found</td>
+            </tr>
+            <tr th:each="row : ${rows}">
+              <td class="idcell" th:text="'#' + ${row.get('id')}"></td>
+              <td th:each="c, cs : ${columns}">
+                <span th:if="${c == 'status'}" class="pill" th:classappend="'st-' + ${row.get(c)}"
+                      th:text="${#strings.replace(row.get(c),'_',' ')}"></span>
+                <a th:if="${c != 'status' and cs.first}" class="rowlink"
+                   th:href="@{/m/{k}/view/{id}(k=${key},id=${row.get('id')})}" th:text="${row.get(c)}"></a>
+                <span th:if="${c != 'status' and !cs.first}" th:text="${row.get(c)}"></span>
+              </td>
+              <td class="actions">
+                <th:block th:if="${key == 'requests'}">
+                  <a class="btn-mini ok" th:if="${row.get('status') == 'PENDING'}" th:href="@{/requests/{id}/approve(id=${row.get('id')})}">Approve</a>
+                  <a class="btn-mini go" th:if="${row.get('status') == 'PENDING' or row.get('status') == 'APPROVED'}" th:href="@{/requests/{id}/allocate(id=${row.get('id')})}">Allocate</a>
+                  <a class="btn-mini" th:if="${row.get('status') == 'ALLOCATED'}" th:href="@{/requests/{id}/complete(id=${row.get('id')})}">Complete</a>
+                  <a class="btn-mini no" th:if="${row.get('status') == 'PENDING' or row.get('status') == 'APPROVED'}" th:href="@{/requests/{id}/reject(id=${row.get('id')})}">Reject</a>
+                </th:block>
+                <th:block th:if="${key == 'maintenance'}">
+                  <a class="btn-mini" th:if="${row.get('status') == 'SCHEDULED'}" th:href="@{/m/maintenance/status/{id}/IN_PROGRESS(id=${row.get('id')})}">Start</a>
+                  <a class="btn-mini ok" th:if="${row.get('status') == 'IN_PROGRESS'}" th:href="@{/m/maintenance/status/{id}/COMPLETED(id=${row.get('id')})}">Mark done</a>
+                </th:block>
+                <a class="icon-btn" title="View" th:href="@{/m/{k}/view/{id}(k=${key},id=${row.get('id')})}"><i class="bi bi-eye"></i></a>
+                <th:block th:if="${canAdd}">
+                  <a class="icon-btn" title="Edit" th:href="@{/m/{k}/edit/{id}(k=${key},id=${row.get('id')})}"><i class="bi bi-pencil"></i></a>
+                  <a class="icon-btn danger" title="Delete" onclick="return confirm('Delete this record?')"
+                     th:href="@{/m/{k}/delete/{id}(k=${key},id=${row.get('id')})}"><i class="bi bi-trash"></i></a>
+                </th:block>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('search').addEventListener('input', function (e) {
+    var q = e.target.value.toLowerCase();
+    document.querySelectorAll('#tbl tbody tr').forEach(function (tr) {
+      tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+</script>
+</body>
+</html>

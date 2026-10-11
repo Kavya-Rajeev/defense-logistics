@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${title})}"></head>
+<body>
+<aside th:replace="~{fragments :: sidebar(${key})}"></aside>
+
+<div class="main">
+  <header th:replace="~{fragments :: topbar(${title})}"></header>
+
+  <div class="content">
+    <div th:replace="~{fragments :: flash}"></div>
+
+    <div class="page-head">
+      <div>
+        <a class="back" th:href="@{/m/{k}(k=${key})}"><i class="bi bi-arrow-left"></i> Back to <span th:text="${title}"></span></a>
+        <h2 class="mt-2"><span th:text="${title}"></span> <span class="idcell" th:text="'#' + ${row.get('id')}"></span></h2>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <th:block th:if="${key == 'requests'}">
+          <a class="btn-primary-x" th:if="${row.get('status') == 'PENDING'}" th:href="@{/requests/{id}/approve(id=${row.get('id')},back='detail')}"><i class="bi bi-check2"></i> Approve</a>
+          <a class="btn-accent" th:if="${row.get('status') == 'PENDING' or row.get('status') == 'APPROVED'}" th:href="@{/requests/{id}/allocate(id=${row.get('id')},back='detail')}"><i class="bi bi-lightning-charge"></i> Allocate</a>
+          <a class="btn-primary-x" th:if="${row.get('status') == 'ALLOCATED'}" th:href="@{/requests/{id}/complete(id=${row.get('id')},back='detail')}"><i class="bi bi-flag"></i> Complete</a>
+        </th:block>
+        <a class="btn-ghost" th:if="${canAdd}" th:href="@{/m/{k}/edit/{id}(k=${key},id=${row.get('id')})}"><i class="bi bi-pencil"></i> Edit</a>
+      </div>
+    </div>
+
+    <div class="panel" style="height:auto">
+      <div class="panel-body">
+        <div class="detail-grid">
+          <div th:each="c : ${columns}">
+            <div class="k" th:text="${labels.get(c)}"></div>
+            <div class="v">
+              <span th:if="${c == 'status'}" class="pill" th:classappend="'st-' + ${row.get(c)}"
+                    th:text="${#strings.replace(row.get(c),'_',' ')}"></span>
+              <span th:unless="${c == 'status'}" th:text="${row.get(c)}"></span>
+            </div>
+          </div>
+          <div th:if="${row.get('remarks') != null}">
+            <div class="k">Remarks</div>
+            <div class="v" th:text="${row.get('remarks')}"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel mt-4" style="height:auto" th:if="${!#lists.isEmpty(related)}">
+      <div class="panel-head"><h6>Allocated resources</h6><a th:href="@{/m/allocations}">All allocations</a></div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Vehicle</th><th>Equipment</th><th>Date</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr th:each="a : ${related}">
+              <td th:text="${a.get('vehicle')}"></td>
+              <td th:text="${a.get('equipment')}"></td>
+              <td th:text="${a.get('date')}"></td>
+              <td><span class="pill" th:classappend="'st-' + ${a.get('status')}" th:text="${a.get('status')}"></span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

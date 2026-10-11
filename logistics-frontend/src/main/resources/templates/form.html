@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${title})}"></head>
+<body>
+<aside th:replace="~{fragments :: sidebar(${key})}"></aside>
+
+<div class="main">
+  <header th:replace="~{fragments :: topbar(${title})}"></header>
+
+  <div class="content">
+    <div class="page-head">
+      <div>
+        <a class="back" th:href="@{/m/{k}(k=${key})}"><i class="bi bi-arrow-left"></i> Back to <span th:text="${title}"></span></a>
+        <h2 class="mt-2" th:text="${mode} + ' - ' + ${title}"></h2>
+      </div>
+    </div>
+
+    <div class="panel" style="max-width:860px;height:auto">
+      <div class="panel-body">
+        <form th:action="@{/m/{k}/save(k=${key})}" method="post">
+          <input type="hidden" name="id" th:value="${row.get('id')}">
+          <div class="form-grid">
+            <div class="field" th:each="f : ${formCols}">
+              <label th:text="${labels.get(f)}"></label>
+
+              <select th:if="${opts.containsKey(f)}" th:name="${f}" required>
+                <option value="" disabled th:selected="${row.get(f) == null}">Select...</option>
+                <option th:each="o : ${opts.get(f)}" th:value="${o}"
+                        th:text="${#strings.replace(o,'_',' ')}" th:selected="${o == row.get(f)}"></option>
+              </select>
+
+              <input th:unless="${opts.containsKey(f)}" th:name="${f}" th:value="${row.get(f)}"
+                     th:attr="type=${types.get(f) != null ? types.get(f) : 'text'}" required>
+            </div>
+          </div>
+          <div class="d-flex gap-2 mt-4">
+            <button class="btn-primary-x" type="submit"><i class="bi bi-check-lg"></i> Save</button>
+            <a class="btn-ghost" th:href="@{/m/{k}(k=${key})}">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

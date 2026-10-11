@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Sign in')}"></head>
+<body class="login-body">
+<div class="login-shell">
+
+  <section class="login-hero">
+    <div class="hero-brand">
+      <span class="brand-mark"><i class="bi bi-shield-shaded"></i></span>
+      <span>Defence Logistics</span>
+    </div>
+    <h1>Every resource,<br>ready when it matters.</h1>
+    <p>Personnel, equipment, vehicles, supplies and maintenance in one command console.</p>
+    <ul class="hero-points">
+      <li><i class="bi bi-lightning-charge"></i> Allocate vehicles and equipment in one click</li>
+      <li><i class="bi bi-graph-up-arrow"></i> Live readiness indicators</li>
+      <li><i class="bi bi-wrench-adjustable"></i> Maintenance that updates availability</li>
+    </ul>
+  </section>
+
+  <section class="login-panel">
+    <form class="login-form" th:action="@{/login}" method="post">
+      <h2>Sign in</h2>
+      <p class="muted">Use your authorised credentials to continue.</p>
+      <div class="alert-x" th:if="${error}" th:text="${error}"></div>
+
+      <div class="field mb-3">
+        <label>Username</label>
+        <input name="username" autocomplete="username" required autofocus>
+      </div>
+      <div class="field mb-4">
+        <label>Password</label>
+        <input type="password" name="password" autocomplete="current-password" required>
+      </div>
+      <button class="btn-primary-x w-100" type="submit"><i class="bi bi-box-arrow-in-right"></i> Sign in</button>
+
+      <div class="demo">
+        <b>Demo accounts</b><br>
+        admin / admin123<br>
+        officer / officer123
+      </div>
+    </form>
+  </section>
+
+</div>
+</body>
+</html>
